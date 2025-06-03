@@ -1,5 +1,5 @@
 Tourette Syndrome
-+Contents)
+Access Points (Contents)
  * What is Tourette Syndrome?
  * Understanding Tics
  * Causes and Onset
