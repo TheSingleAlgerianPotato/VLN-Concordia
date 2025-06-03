@@ -1,13 +1,4 @@
-Tourette Syndrome
-Access Points (Contents)
- * What is Tourette Syndrome?
- * Understanding Tics
- * Causes and Onset
- * Diagnosis
- * Co-occurring Conditions
- * Impact on Daily Life
- * Management and Treatment
- * Dispelling Myths and Fostering Understanding
+
 What is Tourette Syndrome?
 Tourette Syndrome, often abbreviated as TS, is a neurological disorder primarily characterized by the presence of multiple motor tics and at least one vocal tic. These tics are repetitive, stereotyped, involuntary movements and vocalizations that typically emerge in childhood. It's crucial to understand that Tourette Syndrome is rooted in neurological factors, likely involving a combination of genetic predisposition and environmental influences that affect brain development and the functioning of neurotransmitters like dopamine in specific brain regions, such as the basal ganglia and frontal lobes. TS is not a psychological disorder, nor is it caused by emotional problems or trauma, although stress, anxiety, and fatigue can sometimes exacerbate the frequency or intensity of tics.
 Understanding Tics
