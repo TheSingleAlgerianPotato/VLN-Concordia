@@ -52,13 +52,3 @@ Database entries are provided as Markdown files within this repository.
 * Navigate directly to the file for the disability you are interested in. The repository will be organized to facilitate access to these entries.
 * Future enhancements will include improved navigation features as the database expands.
 
----
-
-## License
-
-*(Consider adding a license for your project, e.g., "This project is licensed under the [NAME OF LICENSE] - see the `LICENSE.md` file for details." For now, contributions are accepted under GitHub's standard Terms of Service for user-generated content.)*
-
----
-
-*(Optional: You can add an "Acknowledgments" section here if you wish to thank specific contributors or groups as the project grows.)*
-
