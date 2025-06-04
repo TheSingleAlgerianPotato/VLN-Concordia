@@ -1,0 +1,61 @@
+name: Update Entries JSON
+
+on:
+  push:
+    paths:
+      - 'data/**'
+      - '!data/entries.json'
+
+jobs:
+  update-entries:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Update entries.json
+      run: |
+        python -c "
+        import os
+        import json
+        from pathlib import Path
+
+        # The directory containing all disability entries
+        data_dir = 'data'
+        entries_file = Path(data_dir) / 'entries.json'
+
+        # Get all directories in data/ that contain at least one .md file
+        entries = []
+        for entry_dir in Path(data_dir).iterdir():
+            if entry_dir.is_dir():
+                # Find all language markdown files
+                lang_files = [f.name for f in entry_dir.glob('*.md')]
+                if lang_files:
+                    langs = [f.split('.')[0] for f in lang_files]
+                    entry_name = entry_dir.name.replace('_', ' ')
+                    entries.append({
+                        'name': entry_name,
+                        'directory': entry_dir.name,
+                        'langs': langs
+                    })
+
+        # Sort entries alphabetically
+        entries.sort(key=lambda x: x['name'].lower())
+
+        # Write to JSON file
+        with open(entries_file, 'w') as f:
+            json.dump(entries, f, indent=2)
+
+        print(f'Updated {entries_file} with {len(entries)} entries')
+        "
+        
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git add data/entries.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update entries.json automatically" && git push)
