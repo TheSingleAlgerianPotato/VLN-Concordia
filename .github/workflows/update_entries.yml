@@ -1,0 +1,51 @@
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'data/**'
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  update-json:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x' # Use a recent Python 3 version
+
+      - name: Run script to generate entries.json
+        run: python /home/ubuntu/generate_entries.py # Assuming the script is placed at the root in the action runner
+        # We need to adjust the script path or copy it first
+        # Let's assume the script will be checked into the repo root
+
+      # Corrected approach: Place the script in the repo and run it from there
+      # Step 1: Place generate_entries.py in the repo root or a scripts folder
+      # Step 2: Adjust the run command in the workflow
+      # Let's assume the script is at the root for now
+
+      - name: Run script to generate entries.json (Corrected)
+        run: |
+          # Ensure the script is executable (optional, but good practice)
+          # chmod +x generate_entries.py 
+          # Run the script, assuming it's in the repo root
+          python generate_entries.py
+        working-directory: ${{ github.workspace }} # Ensure script runs from repo root
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --quiet entries.json || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add entries.json
+          git commit -m 'Automated update of 
