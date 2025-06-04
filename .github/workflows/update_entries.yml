@@ -1,4 +1,8 @@
-name: Update Entries JSON (No-Code Solution)
+name: Update Entries JSON (No-Code Solution with PAT)
+
+# Add permissions to allow pushing to the repository
+permissions:
+  contents: write
 
 on:
   push:
@@ -29,16 +33,11 @@ jobs:
   
   generate-entries-json:
     needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.data_changed == 'true' }}
+    if: ${{ needs.detect-changes.outputs.data_changed == 'true' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
       
       - name: Generate entries.json
         id: generate
@@ -106,6 +105,12 @@ jobs:
           
           echo "Successfully generated entries.json"
           cat entries.json
+      
+      - name: Upload entries.json as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: entries-json
+          path: entries.json
   
   commit-and-push:
     needs: generate-entries-json
@@ -114,69 +119,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Generate entries.json again
-        # We need to regenerate it in this job since jobs don't share workspace
-        run: |
-          # Create a temporary directory listing
-          echo "Scanning data directory..."
-          echo "{" > entries.json
-          
-          # Get all directories in the data folder
-          DIRS=$(find data -maxdepth 1 -mindepth 1 -type d | sort)
-          TOTAL_DIRS=$(echo "$DIRS" | wc -l)
-          CURRENT=0
-          
-          # Process each directory
-          for DIR in $DIRS; do
-            CURRENT=$((CURRENT+1))
-            DIR_NAME=$(basename "$DIR")
-            
-            # Skip hidden directories
-            if [[ "$DIR_NAME" == .* ]]; then
-              continue
-            fi
-            
-            echo "Processing directory: $DIR_NAME"
-            
-            # Find language files (assuming they follow the pattern of 2-letter code + .md)
-            LANGS=$(find "$DIR" -maxdepth 1 -type f -name "??.md" | sed 's/.*\/\(.*\)\.md/\1/' | sort | tr '\n' ',' | sed 's/,$//')
-            
-            if [ -n "$LANGS" ]; then
-              echo "  Found languages: $LANGS"
-              
-              # Add to JSON with proper formatting
-              echo "  \"$DIR_NAME\": [" >> entries.json
-              
-              # Convert comma-separated list to JSON array
-              IFS=',' read -ra LANG_ARRAY <<< "$LANGS"
-              LANG_COUNT=${#LANG_ARRAY[@]}
-              LANG_INDEX=0
-              
-              for LANG in "${LANG_ARRAY[@]}"; do
-                LANG_INDEX=$((LANG_INDEX+1))
-                if [ $LANG_INDEX -eq $LANG_COUNT ]; then
-                  echo "    \"$LANG\"" >> entries.json
-                else
-                  echo "    \"$LANG\"," >> entries.json
-                fi
-              done
-              
-              # Close the array for this directory
-              if [ $CURRENT -eq $TOTAL_DIRS ]; then
-                echo "  ]" >> entries.json
-              else
-                echo "  ]," >> entries.json
-              fi
-            fi
-          done
-          
-          # Close the JSON object
-          echo "}" >> entries.json
-          
-          # Format the JSON properly
-          if command -v jq &> /dev/null; then
-            jq . entries.json > entries.json.tmp && mv entries.json.tmp entries.json
-          fi
+      - name: Download entries.json artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: entries-json
       
       - name: Check for changes
         id: git-check
@@ -190,5 +136,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git commit -m 'Automated update of entries.json'
-          git push
           
+          # Use the repository secret for authentication
+          git push https://${{ secrets.my_tkn }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
+
